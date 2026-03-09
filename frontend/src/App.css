@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Lexend', sans-serif;
+}
+
+/* Customer App - Light Mode */
+.customer-app {
+  background-color: #FFF7ED;
+  min-height: 100vh;
+}
+
+/* Kitchen Dashboard - Dark Mode */
+.kitchen-dashboard {
+  background-color: #0F172A;
+  min-height: 100vh;
+  color: #FFFFFF;
+}
+
+/* Admin Panel - Light Mode */
+.admin-panel {
+  background-color: #FFFFFF;
+  min-height: 100vh;
+}
+
+/* Transitions */
+.page-transition {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button animations */
+.btn-press:active {
+  transform: scale(0.95);
+}
+
+.btn-hover:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s;
+}
+
+/* Cart animation */
+@keyframes bounceShort {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.cart-add {
+  animation: bounceShort 0.3s ease-in-out;
+}
