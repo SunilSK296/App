@@ -138,7 +138,12 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
 
 def generate_qr_code(table_number: int) -> str:
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    data = f"table_{table_number}"
+    # Link to frontend menu page
+    frontend_url = os.environ.get(
+        "FRONTEND_URL",
+        "https://app-seven-eta-34.vercel.app"
+    )
+    data = f"{frontend_url}/table/{table_number}"
     qr.add_data(data)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
