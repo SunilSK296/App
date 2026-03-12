@@ -23,7 +23,8 @@ const CustomerMenu = () => {
     fetchCategories();
     fetchRecommendations();
     // Load cart from localStorage
-    const savedCart = localStorage.getItem('cart');
+    const session = localStorage.getItem("customerSession");
+   const savedCart = localStorage.getItem(`cart_${session}`);
     if (savedCart) {
       setCart(JSON.parse(savedCart));
     }
@@ -65,7 +66,9 @@ const CustomerMenu = () => {
       newCart = [...cart, { ...item, quantity: 1 }];
     }
     setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
+    const session = localStorage.getItem("customerSession") || crypto.randomUUID();
+    localStorage.setItem("customerSession", session);
+    localStorage.setItem(`cart_${session}`, JSON.stringify(newCart));
     localStorage.setItem('tableNumber', tableNum);
     toast.success(`${item.name} added to cart!`);
   };
