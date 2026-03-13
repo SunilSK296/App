@@ -105,15 +105,17 @@ class Order(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     table_number: int
+    customer_session: str
     items: List[Dict]
     total_amount: float
-    status: str = "received"  # received, preparing, ready, served, cancelled
+    status: str = "received"
     special_instructions: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class OrderCreate(BaseModel):
     table_number: int
+    customer_session: str
     items: List[OrderItem]
     special_instructions: Optional[str] = None
 
@@ -147,10 +149,6 @@ def generate_qr_code(table_number: int) -> str:
     )
 
     data = f"{frontend_url}/table/{table_number}"
-
-
-    data = f"{frontend_url}/table/{table_number}"
-
 
     qr.add_data(data)
     qr.make(fit=True)
@@ -299,6 +297,7 @@ async def create_order(order_data: OrderCreate):
     
     order = Order(
         table_number=order_data.table_number,
+        customer_session=order_data.customer_session,
         items=order_items,
         total_amount=total_amount,
         special_instructions=order_data.special_instructions
@@ -351,6 +350,12 @@ async def update_order_status(order_id: str, status_update: OrderStatusUpdate):
         raise HTTPException(status_code=404, detail="Order not found")
     
     order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+
+    if isinstance(order.get("created_at"), str):
+        order["created_at"] = datetime.fromisoformat(order["created_at"])
+        
+    if isinstance(order.get("updated_at"), str):
+        order["updated_at"] = datetime.fromisoformat(order["updated_at"])
     
     # Broadcast to all clients
     await manager.broadcast({"type": "order_status_update", "order": order}, "kitchen")

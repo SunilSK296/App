@@ -1,116 +1,147 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { toast } from 'sonner'
-import { ShoppingCart, Search, Sparkles } from 'lucide-react'
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "sonner";
+import { ShoppingCart, Search, Sparkles } from "lucide-react";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL
-const API = `${BACKEND_URL}/api`
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const CustomerMenu = () => {
 
-  const { tableNumber } = useParams()
-  const navigate = useNavigate()
+  const { tableNumber } = useParams();
+  const navigate = useNavigate();
 
-  const [menuItems,setMenuItems] = useState([])
-  const [categories,setCategories] = useState([])
-  const [selectedCategory,setSelectedCategory] = useState('All')
-  const [cart,setCart] = useState([])
-  const [searchQuery,setSearchQuery] = useState('')
-  const [recommendations,setRecommendations] = useState(null)
+  const [menuItems,setMenuItems] = useState([]);
+  const [categories,setCategories] = useState([]);
+  const [selectedCategory,setSelectedCategory] = useState("All");
+  const [cart,setCart] = useState([]);
+  const [searchQuery,setSearchQuery] = useState("");
+  const [recommendations,setRecommendations] = useState(null);
 
-  const [tableNum] = useState(tableNumber || 1)
+  const tableNum = tableNumber || 1;
 
   useEffect(()=>{
 
-    // Create customer session if not exists
-    let session = localStorage.getItem("customerSession")
+    // Ensure session exists
+    let session = localStorage.getItem("customerSession");
 
     if(!session){
-      session = crypto.randomUUID()
-      localStorage.setItem("customerSession",session)
+      session = crypto.randomUUID();
+      localStorage.setItem("customerSession",session);
     }
 
-    // Load session cart
-    const savedCart = localStorage.getItem(`cart_${session}`)
+    // Load cart from session
+    const savedCart = localStorage.getItem(`cart_${session}`);
+
     if(savedCart){
-      setCart(JSON.parse(savedCart))
+      setCart(JSON.parse(savedCart));
     }
 
-    fetchMenu()
-    fetchCategories()
-    fetchRecommendations()
+    // Save table number
+    localStorage.setItem("tableNumber",tableNum);
 
-  },[])
+    fetchMenu();
+    fetchCategories();
+    fetchRecommendations();
+
+  },[]);
 
   const fetchMenu = async ()=>{
+
     try{
-      const response = await axios.get(`${API}/menu`)
-      setMenuItems(response.data)
+
+      const response = await axios.get(`${API}/menu`);
+
+      setMenuItems(response.data);
+
     }catch{
-      toast.error("Failed to load menu")
+
+      toast.error("Failed to load menu");
+
     }
-  }
+
+  };
 
   const fetchCategories = async ()=>{
+
     try{
-      const response = await axios.get(`${API}/menu/categories`)
-      setCategories(["All",...response.data.categories])
+
+      const response = await axios.get(`${API}/menu/categories`);
+
+      setCategories(["All",...response.data.categories]);
+
     }catch{
-      console.error("Failed to load categories")
+
+      console.error("Failed to load categories");
+
     }
-  }
+
+  };
 
   const fetchRecommendations = async ()=>{
+
     try{
-      const response = await axios.get(`${API}/ai/recommendations`)
-      setRecommendations(response.data)
+
+      const response = await axios.get(`${API}/ai/recommendations`);
+
+      setRecommendations(response.data);
+
     }catch{
-      console.error("Failed to load recommendations")
+
+      console.error("Failed to load recommendations");
+
     }
-  }
+
+  };
 
   const addToCart = (item)=>{
 
-    const existing = cart.find(c=>c.id===item.id)
+    const existing = cart.find(c=>c.id===item.id);
 
-    let newCart
+    let newCart;
 
     if(existing){
+
       newCart = cart.map(c =>
         c.id===item.id ? {...c,quantity:c.quantity+1} : c
-      )
+      );
+
     }else{
-      newCart = [...cart,{...item,quantity:1}]
+
+      newCart = [...cart,{...item,quantity:1}];
+
     }
 
-    setCart(newCart)
+    setCart(newCart);
 
-    const session = localStorage.getItem("customerSession")
+    const session = localStorage.getItem("customerSession");
 
-    localStorage.setItem(`cart_${session}`,JSON.stringify(newCart))
-    localStorage.setItem("tableNumber",tableNum)
+    localStorage.setItem(`cart_${session}`,JSON.stringify(newCart));
 
-    toast.success(`${item.name} added to cart`)
+    toast.success(`${item.name} added to cart`);
 
-  }
+  };
 
   const filteredItems = menuItems
-    .filter(item => selectedCategory==="All" || item.category===selectedCategory)
+    .filter(item =>
+      selectedCategory==="All" || item.category===selectedCategory
+    )
     .filter(item =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    );
 
-  const cartCount = cart.reduce((sum,i)=>sum+i.quantity,0)
+  const cartCount = cart.reduce((sum,item)=>sum+item.quantity,0);
 
-  const cartTotal = cart.reduce((sum,i)=>sum+i.price*i.quantity,0)
+  const cartTotal = cart.reduce((sum,item)=>sum+item.price*item.quantity,0);
 
-  return (
+  return(
 
   <div className="customer-app">
 
-    {/* Hero */}
+    {/* Hero Section */}
+
     <div className="relative h-48 bg-gradient-to-r from-orange-500 to-red-500 overflow-hidden">
 
       <img
@@ -120,8 +151,15 @@ const CustomerMenu = () => {
       />
 
       <div className="absolute inset-0 flex flex-col justify-center items-center text-white">
-        <h1 className="text-4xl font-bold">Smart Dining</h1>
-        <p className="text-lg mt-2">Table {tableNum}</p>
+
+        <h1 className="text-4xl font-bold">
+        Smart Dining
+        </h1>
+
+        <p className="text-lg mt-2">
+        Table {tableNum}
+        </p>
+
       </div>
 
     </div>
@@ -141,7 +179,7 @@ const CustomerMenu = () => {
         type="text"
         placeholder="Search dishes..."
         value={searchQuery}
-        onChange={e=>setSearchQuery(e.target.value)}
+        onChange={(e)=>setSearchQuery(e.target.value)}
         className="w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500"
         />
 
@@ -149,7 +187,7 @@ const CustomerMenu = () => {
 
     </div>
 
-    {/* AI Recommendations */}
+    {/* Trending */}
 
     {recommendations && recommendations.most_ordered?.length>0 && (
 
@@ -158,24 +196,31 @@ const CustomerMenu = () => {
         <div className="max-w-4xl mx-auto">
 
           <div className="flex items-center gap-2 mb-4">
+
             <Sparkles className="text-orange-500" size={24}/>
-            <h2 className="text-2xl font-bold">Trending Today</h2>
+
+            <h2 className="text-2xl font-bold">
+            Trending Today
+            </h2>
+
           </div>
 
           <div className="grid grid-cols-3 gap-3">
 
             {recommendations.most_ordered.map((item,i)=>(
+
               <div key={i} className="bg-white p-3 rounded-xl text-center shadow">
 
                 <div className="text-2xl font-bold text-orange-500">
-                  {item.orders}
+                {item.orders}
                 </div>
 
                 <div className="text-sm text-gray-600 truncate">
-                  {item.name}
+                {item.name}
                 </div>
 
               </div>
+
             ))}
 
           </div>
@@ -192,7 +237,8 @@ const CustomerMenu = () => {
 
       <div className="flex gap-3 max-w-4xl mx-auto">
 
-        {categories.map(category=>(
+        {categories.map(category => (
+
           <button
           key={category}
           onClick={()=>setSelectedCategory(category)}
@@ -205,6 +251,7 @@ const CustomerMenu = () => {
           {category}
 
           </button>
+
         ))}
 
       </div>
@@ -217,7 +264,7 @@ const CustomerMenu = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {filteredItems.map(item=>(
+        {filteredItems.map(item => (
 
           <div
           key={item.id}
@@ -238,12 +285,17 @@ const CustomerMenu = () => {
 
               <div className="flex justify-between mb-2">
 
-                <h3 className="text-xl font-bold">{item.name}</h3>
+                <h3 className="text-xl font-bold">
+                {item.name}
+                </h3>
 
                 {item.is_vegetarian &&
+
                 <span className="text-green-500 text-xs font-semibold px-2 py-1 bg-green-50 rounded">
                 VEG
-                </span>}
+                </span>
+
+                }
 
               </div>
 
@@ -266,7 +318,7 @@ const CustomerMenu = () => {
                 :"bg-gray-300 text-gray-500 cursor-not-allowed"}`}
                 >
 
-                {item.is_available?"Add":"Unavailable"}
+                {item.is_available ? "Add" : "Unavailable"}
 
                 </button>
 
@@ -282,27 +334,37 @@ const CustomerMenu = () => {
 
     </div>
 
-    {/* Cart Button */}
+    {/* Floating Cart */}
 
     {cartCount>0 && (
 
       <div
       className="fixed bottom-6 left-4 right-4 bg-orange-500 text-white rounded-full shadow-2xl p-4 flex justify-between max-w-4xl mx-auto cursor-pointer"
-      onClick={()=>navigate('/cart')}
+      onClick={()=>navigate("/cart")}
       >
 
         <div className="flex items-center gap-3">
+
           <ShoppingCart size={24}/>
+
           <div>
-            <div className="text-sm">{cartCount} items</div>
+
+            <div className="text-sm">
+            {cartCount} items
+            </div>
+
             <div className="text-xl font-bold">
             ₹{cartTotal.toFixed(2)}
             </div>
+
           </div>
+
         </div>
 
         <button className="bg-white text-orange-500 px-6 py-2 rounded-full font-bold">
+
         View Cart
+
         </button>
 
       </div>
@@ -311,8 +373,8 @@ const CustomerMenu = () => {
 
   </div>
 
-  )
+  );
 
-}
+};
 
-export default CustomerMenu
+export default CustomerMenu;
